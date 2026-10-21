@@ -1928,7 +1928,7 @@
       }, 380);
     } else {
       passcodeStatus.style.color = "#e62e6b";
-      passcodeStatus.textContent = "🥺 รหัสยังไม่ถูกน้า ลองใส่วันเกิด+เดือนเกิด (2210) ดูสิ!";
+      passcodeStatus.textContent = "🥺 รหัสยังไม่ถูกน้า ลองใส่รหัสลับใหม่อีกครั้งนะ!";
       passcodeCard.classList.remove("shake");
       void passcodeCard.offsetWidth;
       passcodeCard.classList.add("shake");
