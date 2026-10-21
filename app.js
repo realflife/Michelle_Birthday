@@ -2080,6 +2080,31 @@
   // =========================================================================
   // 9. GIFT 2 INTERACTIVE: CAT CURATOR, PAW STAMP LIKES & ANGLE SWITCHER
   // =========================================================================
+  // Hydrate all photos from window.EMBEDDED_PHOTOS_B64 so images work on Vercel/GitHub even without pic/ folder
+  const embeddedPhotos = window.EMBEDDED_PHOTOS_B64 || {};
+  function resolvePhotoSrc(path) {
+    return (path && embeddedPhotos[path]) ? embeddedPhotos[path] : path;
+  }
+
+  document.querySelectorAll('img[src^="pic/"]').forEach((img) => {
+    const raw = img.getAttribute("src");
+    if (embeddedPhotos[raw]) {
+      img.src = embeddedPhotos[raw];
+    }
+  });
+
+  // Video fallback between root birthday_surprise.mp4 and pic/birthday_surprise.mp4
+  if (surpriseVideo) {
+    let triedFallbackVideo = false;
+    surpriseVideo.addEventListener("error", () => {
+      if (triedFallbackVideo) return;
+      triedFallbackVideo = true;
+      const curAttr = surpriseVideo.getAttribute("src") || "";
+      surpriseVideo.src = curAttr.startsWith("pic/") ? "birthday_surprise.mp4" : "pic/birthday_surprise.mp4";
+      surpriseVideo.load();
+    });
+  }
+
   const CAT_CURATOR_QUOTES = [
     "😻 “ง่ำๆ ขนมแมวเลียอร่อยจัง! ขออวยพรให้น้องมิเชลมีความสุขมากๆ น่ารักสดใสแบบนี้ตลอดไปเลยนะเหมียว~”",
     "🐾 “เหมียวแอบดูรูปตั้งแต่ตอนเด็กจนถึงชุดนักศึกษาเลย โตมาอย่างดีและน่ารักขึ้นทุกปีเลยนะเนี่ย!”",
@@ -2135,7 +2160,7 @@
         if (!altSrc) return;
         showingAlt = !showingAlt;
         const nextSrc = showingAlt ? altSrc : primarySrc;
-        imgEl.src = nextSrc;
+        imgEl.src = resolvePhotoSrc(nextSrc);
         card.setAttribute("data-photo", nextSrc);
         spawnBurstParticles("cat", 10);
       });
@@ -2145,14 +2170,14 @@
     if (zoomBtn) {
       zoomBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        lightboxImg.src = card.getAttribute("data-photo");
+        lightboxImg.src = resolvePhotoSrc(card.getAttribute("data-photo"));
         lightboxCaption.textContent = card.getAttribute("data-caption");
         photoLightbox.classList.add("open");
       });
     }
 
     card.addEventListener("click", () => {
-      lightboxImg.src = card.getAttribute("data-photo");
+      lightboxImg.src = resolvePhotoSrc(card.getAttribute("data-photo"));
       lightboxCaption.textContent = card.getAttribute("data-caption");
       photoLightbox.classList.add("open");
       spawnBurstParticles("cat", 12);
