@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>💖 Happy Birthday Michelle (22.10) — 3D Surprise Gift 💖</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Three.js & GSAP for 3D Interactive Scene & Smooth Fly-Through Motion -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+
+  <!-- 3D Interactive WebGL World -->
+  <div id="webgl-container"></div>
+
+  <!-- 2D Floating Petals & Hearts Overlay Canvas -->
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- Background Audio (Manual toggle only as requested) -->
+  <audio id="bg-music" src="music_birthday.mp3" loop preload="auto"></audio>
+
+  <!-- Top Navigation & Music Toggle -->
+  <header class="top-bar">
+    <div class="brand-pill">
+      <span>🎀</span>
+      <span>Michelle’s Birthday Surprise • 22.10</span>
+    </div>
+    <button id="music-toggle-btn" class="music-btn" type="button">
+      <span id="music-icon">🔇</span>
+      <span id="music-label">เปิดเพลงวันเกิด</span>
+    </button>
+  </header>
+
+  <!-- =========================================================
+       SCENE 1: LOCKED HEART TREASURE MAILBOX & 3D PHOTO CARD
+       ========================================================= -->
+  <section id="scene-lock" class="screen-layer active">
+    <div class="hero-header">
+      <span class="hero-badge">💌 SECRET BIRTHDAY TREASURE 3D 💌</span>
+      <h1 class="hero-title">เซอร์ไพรส์วันเกิดหลานรหัสคนเก่ง ✨</h1>
+      <p class="hero-sub">
+        ขยับเมาส์หรือแตะหน้าจอเพื่อหมุนดูรูป 3D และตู้จดหมายสมบัติสีชมพู<br />
+        กดที่ตู้จดหมายที่ล็อกอยู่เพื่อใส่รหัสลับเปิดของขวัญกันเลย!
+      </p>
+    </div>
+
+    <div class="center-3d-prompt">
+      <button id="open-lock-modal-btn" class="unlock-trigger-btn" type="button">
+        <span>🔐</span>
+        <span>กดเพื่อปลดล็อกตู้จดหมายความลับ</span>
+        <span>💖</span>
+      </button>
+      <div class="hint-tag">✨ คำใบ้รหัสลับ: วันเกิด + เดือนเกิด 4 หลัก (2210) ✨</div>
+    </div>
+  </section>
+
+  <!-- PASSCODE MODAL (2210) -->
+  <div id="passcode-modal" class="passcode-modal-backdrop" aria-hidden="true">
+    <div id="passcode-card" class="passcode-card">
+      <button id="close-lock-modal-btn" class="modal-close-btn" type="button" title="ปิด">✕</button>
+      <div class="lock-icon-badge">💖</div>
+      <h2 class="passcode-title">ตู้จดหมายสมบัติล็อกอยู่!</h2>
+      <p class="passcode-desc">กรอกรหัสลับวันเกิดและเดือนเกิดของน้องมิเชลเพื่อเปิดประตูมิติ 3D</p>
+
+      <!-- Cute Placeholder Input -->
+      <div class="secret-input-wrapper">
+        <input
+          id="secret-code-input"
+          class="secret-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="4"
+          placeholder="🌸 ใส่รหัสลับวันเกิด 2210 ที่นี่ 🌸"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- 4 Heart Pin Slots -->
+      <div class="pin-hearts-row">
+        <div class="pin-slot" data-slot="0">♡</div>
+        <div class="pin-slot" data-slot="1">♡</div>
+        <div class="pin-slot" data-slot="2">♡</div>
+        <div class="pin-slot" data-slot="3">♡</div>
+      </div>
+
+      <!-- On-screen Keypad -->
+      <div class="keypad-grid">
+        <button class="key-btn" data-key="1" type="button">1</button>
+        <button class="key-btn" data-key="2" type="button">2</button>
+        <button class="key-btn" data-key="3" type="button">3</button>
+        <button class="key-btn" data-key="4" type="button">4</button>
+        <button class="key-btn" data-key="5" type="button">5</button>
+        <button class="key-btn" data-key="6" type="button">6</button>
+        <button class="key-btn" data-key="7" type="button">7</button>
+        <button class="key-btn" data-key="8" type="button">8</button>
+        <button class="key-btn" data-key="9" type="button">9</button>
+        <button class="key-btn action-key" data-key="clear" type="button">ลบ</button>
+        <button class="key-btn" data-key="0" type="button">0</button>
+        <button class="key-btn submit-key" data-key="enter" type="button">เปิด 💖</button>
+      </div>
+
+      <div id="passcode-status" class="passcode-status"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       SCENE 2: 3 INTERACTIVE GIFTS SELECTION HUB
+       ========================================================= -->
+  <section id="scene-hub" class="screen-layer">
+    <div class="hero-header">
+      <span class="hero-badge">🎁 CHOOSE YOUR 3D BIRTHDAY GIFT 🎁</span>
+      <h1 class="hero-title">สุขสันต์วันเกิดนะน้อง Michelle! 💕</h1>
+      <p class="hero-sub">
+        เลือกเปิดกล่องของขวัญทั้ง 3 ชิ้นด้านล่าง (หรือคลิกที่กล่องของขวัญ 3D ตรงกลางได้เลย!)
+      </p>
+    </div>
+
+    <div class="gifts-bottom-dock">
+      <!-- Gift 1 -->
+      <div class="gift-card-btn" data-gift="1">
+        <span class="gift-step-tag">ของขวัญชิ้นที่ 1</span>
+        <div class="gift-icon-preview">🌸🎁🌸</div>
+        <div>
+          <div class="gift-card-title">กล่องของขวัญสวนดอกไม้</div>
+          <div class="gift-card-sub">ดอกไม้บานสะพรั่ง & คำอวยพรเริ่มต้นสุดอบอุ่น</div>
+        </div>
+      </div>
+
+      <!-- Gift 2 -->
+      <div class="gift-card-btn" data-gift="2">
+        <span class="gift-step-tag">ของขวัญชิ้นที่ 2</span>
+        <div class="gift-icon-preview">🐱🖼️🐾</div>
+        <div>
+          <div class="gift-card-title">พิพิธภัณฑ์เหมียวน้อย</div>
+          <div class="gift-card-sub">แกลเลอรีรูปสุดน่ารัก 3 รูป & คำอวยพรเหมียวๆ</div>
+        </div>
+      </div>
+
+      <!-- Gift 3 -->
+      <div class="gift-card-btn" data-gift="3">
+        <span class="gift-step-tag">ของขวัญชิ้นที่ 3 (พิเศษ!)</span>
+        <div class="gift-icon-preview">💝✨💐</div>
+        <div>
+          <div class="gift-card-title">กล่องของขวัญหัวใจพิเศษ</div>
+          <div class="gift-card-sub">ช่อดอกไม้ยักษ์ & คลิปวิดีโอเซอร์ไพรส์สุดพิเศษ</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       GIFT 1 SCENE: FLOWER GARDEN & WARM BIRTHDAY WISH
+       ========================================================= -->
+  <section id="scene-gift-1" class="screen-layer">
+    <div class="scene-top-controls">
+      <button class="back-to-hub-btn" data-back="hub" type="button">
+        <span>⬅</span>
+        <span>กลับไปหน้าเลือกของขวัญ</span>
+      </button>
+    </div>
+
+    <div class="flower-blessing-panel">
+      <div class="flower-crown-art">🌸🌷🌺🌻🌹🌷🌸</div>
+      <h2 class="blessing-heading">Happy Birthday นะน้องมิเชล! 🎂💖</h2>
+      <div class="blessing-body">
+        🌷 <strong>เริ่มต้นวันเกิดปีนี้ด้วยสวนดอกไม้สีชมพูสดใสนะ!</strong> 🌷<br />
+        ขอให้น้องมิเชลมีความสุขมากๆ ในทุกๆ วัน ยิ้มเยอะๆ แบบนี้ตลอดไปเลยนะ ✨
+        มีแต่คนรัก คนเอ็นดู และมีรอยยิ้มที่สดใสเหมือนดอกไม้ที่กำลังบานสะพรั่งรอบตัวตอนนี้เลย! 💕
+      </div>
+
+      <!-- Interactive 4 Blooming Wish Flowers -->
+      <div class="wish-garden-section">
+        <div class="wish-garden-header">
+          <span class="wish-garden-title">✨ กดปลุกดอกไม้อธิษฐานทั้ง 4 ดอกเพื่อรับพรพิเศษ! ✨</span>
+          <span id="flower-progress-badge" class="flower-progress-badge">บานแล้ว 0/4 ดอก 🌱</span>
+        </div>
+
+        <div class="wish-flowers-grid">
+          <button class="wish-flower-btn" data-flower="0" type="button">
+            <span class="wf-icon">🌸</span>
+            <span class="wf-name">ซากุระรอยยิ้ม</span>
+            <span class="wf-state">กดให้บาน</span>
+          </button>
+          <button class="wish-flower-btn" data-flower="1" type="button">
+            <span class="wf-icon">🌷</span>
+            <span class="wf-name">ทิวลิปแสนอบอุ่น</span>
+            <span class="wf-state">กดให้บาน</span>
+          </button>
+          <button class="wish-flower-btn" data-flower="2" type="button">
+            <span class="wf-icon">🌻</span>
+            <span class="wf-name">ทานตะวันพลังบวก</span>
+            <span class="wf-state">กดให้บาน</span>
+          </button>
+          <button class="wish-flower-btn" data-flower="3" type="button">
+            <span class="wf-icon">🌹</span>
+            <span class="wf-name">กุหลาบสมหวัง</span>
+            <span class="wf-state">กดให้บาน</span>
+          </button>
+        </div>
+
+        <div id="wish-reveal-box" class="wish-reveal-box">
+          🌱 <em>ลองกดเลือกดอกไม้ด้านบนทีละดอกดูสิ มีคำอวยพรพิเศษซ่อนอยู่ในกลีบดอกไม้ด้วยนะ!</em> 🌸
+        </div>
+      </div>
+
+      <div class="flower-action-row">
+        <button id="bloom-more-flowers-btn" class="cute-action-btn" type="button">
+          🌸 กดโปรยกลีบดอกไม้ & หัวใจชุดใหญ่! 🌸
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       GIFT 2 SCENE: CUTE CAT PHOTO MUSEUM (CHILDHOOD, UNIFORM, SWEET)
+       ========================================================= -->
+  <section id="scene-gift-2" class="screen-layer">
+    <div class="scene-top-controls">
+      <button class="back-to-hub-btn" data-back="hub" type="button">
+        <span>⬅</span>
+        <span>กลับไปหน้าเลือกของขวัญ</span>
+      </button>
+    </div>
+
+    <div class="cat-museum-panel">
+      <div class="museum-header">
+        <h2>🐾 Meow Cute Museum : พิพิธภัณฑ์ความน่ารักของมิเชล 🐱💖</h2>
+        <p>รวมคอลเลกชันภาพสุดพิเศษตั้งแต่สมัยวัยเด็ก ชุดนักศึกษา ไปจนถึงลุคสาวหวาน!</p>
+      </div>
+
+      <!-- Interactive Cat Curator Bar -->
+      <div class="cat-curator-bar">
+        <div class="curator-avatar-wrap">
+          <span class="curator-cat-emoji">🐱👑</span>
+          <div class="curator-speech-box">
+            <div class="curator-name">ภัณฑารักษ์เหมียวชมพู • Ticket #2210</div>
+            <div id="curator-speech-text" class="curator-speech-text">
+              “เหมียว~ ยินดีต้อนรับสู่พิพิธภัณฑ์นะ! กดลูบหัวเหมียวหรือกดปั๊มอุ้งเท้า 🐾 ให้รูปที่ชอบได้เลย!”
+            </div>
+          </div>
+        </div>
+        <button id="feed-cat-btn" class="feed-cat-btn" type="button">
+          🐟 ป้อนขนมแมวเลีย
+        </button>
+      </div>
+
+      <div class="museum-gallery-grid">
+        <!-- Exhibit 1: Childhood Photo -->
+        <article class="cat-frame-card" data-photo="pic/web_IMG_1893.jpg" data-caption="👶 ห้องจัดแสดงที่ 1 (วัยเด็กสุดคิวท์): น่ารักน่าเอ็นดูตั้งแต่ตัวจิ๋วเลย! เติบโตมาอย่างดีและน่ารักเสมอต้นเสมอปลายจริงๆ นะเหมียว~">
+          <div class="cat-ears-deco">
+            <div class="cat-ear"></div>
+            <div class="cat-ear"></div>
+          </div>
+          <span class="cat-badge-floating">👶 วัยเด็กสุดคิวท์ #1</span>
+          <div class="museum-photo-box">
+            <img src="pic/web_IMG_1893.jpg" decoding="async" alt="Michelle Childhood Exhibit" />
+            <div class="paw-stamp-overlay">🐾</div>
+          </div>
+          <div class="museum-caption-box">
+            <div class="museum-caption-title">🐾 คอลเลกชันวัยเด็ก: น้องมิเชลตัวจิ๋ว</div>
+            <p class="museum-caption-text">
+              “ฉายแววน่ารักสดใสตั้งแต่เด็กเลย! ขอให้รอยยิ้มไร้เดียงสาและความสุขแบบวัยเด็กอยู่กับมิเชลตลอดไปนะเหมียว 🐱🍼”
+            </p>
+            <div class="card-interactive-row">
+              <button class="paw-like-btn" type="button">
+                <span>🐾 ปั๊มอุ้งเท้าเลิฟ</span>
+                <span class="paw-count">99+</span>
+              </button>
+              <button class="zoom-photo-btn" type="button">🔍 ดูรูปใหญ่</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Exhibit 2: University Uniform Photo -->
+        <article class="cat-frame-card" data-photo="pic/web_S__4366352.jpg" data-alt-photo="pic/web_IMG_2363.jpg" data-caption="🎓 ห้องจัดแสดงที่ 2 (ลุคนักศึกษาคนเก่ง): สวยเรียบร้อยและสดใสในชุดนักศึกษา ขอให้เรื่องเรียนราบรื่น เกรดปังๆ ทุกวิชาเลยนะ!">
+          <div class="cat-ears-deco">
+            <div class="cat-ear"></div>
+            <div class="cat-ear"></div>
+          </div>
+          <span class="cat-badge-floating">🎓 ชุดนักศึกษาคนเก่ง #2</span>
+          <div class="museum-photo-box">
+            <img src="pic/web_S__4366352.jpg" decoding="async" alt="Michelle Student Uniform Exhibit" />
+            <div class="paw-stamp-overlay">🐾</div>
+          </div>
+          <div class="museum-caption-box">
+            <div class="museum-caption-title">🐾 คอลเลกชันนักศึกษา: สดใสวัยเรียน</div>
+            <p class="museum-caption-text">
+              “ใส่ชุดนักศึกษาแล้วน่ารักสมวัยสุดๆ ขอให้การเรียนราบรื่น สอบผ่านฉลุย มีความสุขกับเพื่อนๆ ทุกวันเลยนะ 😸📚”
+            </p>
+            <div class="card-interactive-row">
+              <button class="paw-like-btn" type="button">
+                <span>🐾 ปั๊มอุ้งเท้าเลิฟ</span>
+                <span class="paw-count">221</span>
+              </button>
+              <button class="switch-angle-btn" type="button">🔄 สลับมุมภาพ</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Exhibit 3: Sweet Pink Cherry Dress Photo -->
+        <article class="cat-frame-card" data-photo="pic/web_IMG_2409.jpg" data-alt-photo="pic/web_IMG_2406.jpg" data-caption="🍒 ห้องจัดแสดงที่ 3 (ลุคสาวหวานสุดละมุน): สวยหวานเปล่งประกายระดับสิบเต็มสิบ ขอให้ปีนี้มีแต่เรื่องดีๆ เข้ามาทำให้ยิ้มได้ทุกวันเลย!">
+          <div class="cat-ears-deco">
+            <div class="cat-ear"></div>
+            <div class="cat-ear"></div>
+          </div>
+          <span class="cat-badge-floating">🍒 สาวหวานสุดละมุน #3</span>
+          <div class="museum-photo-box">
+            <img src="pic/web_IMG_2409.jpg" decoding="async" alt="Michelle Sweet Dress Exhibit" />
+            <div class="paw-stamp-overlay">🐾</div>
+          </div>
+          <div class="museum-caption-box">
+            <div class="museum-caption-title">🐾 คอลเลกชันสาวหวาน: เปล่งประกาย</div>
+            <p class="museum-caption-text">
+              “ลุคสีชมพูเชอร์รี่หวานละมุนใจเหมียวที่สุด! ขอให้เป็นปีที่สดใส มีแต่ความรักดีๆ และความโชคดีล้อมรอบนะ 😽🌸”
+            </p>
+            <div class="card-interactive-row">
+              <button class="paw-like-btn" type="button">
+                <span>🐾 ปั๊มอุ้งเท้าเลิฟ</span>
+                <span class="paw-count">520</span>
+              </button>
+              <button class="switch-angle-btn" type="button">🔄 สลับมุมภาพ</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHOTO LIGHTBOX FOR CAT MUSEUM -->
+  <div id="photo-lightbox" class="photo-lightbox" aria-hidden="true">
+    <div class="lightbox-card">
+      <button id="close-lightbox-btn" class="modal-close-btn" type="button">✕</button>
+      <img id="lightbox-img" src="" alt="Preview" />
+      <p id="lightbox-caption" class="lightbox-caption"></p>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       GIFT 3 SCENE: SPECIAL HEART BOX -> GIANT BOUQUET -> VIDEO POPUP
+       ========================================================= -->
+  <section id="scene-gift-3" class="screen-layer">
+    <div class="scene-top-controls">
+      <button class="back-to-hub-btn" data-back="hub" type="button">
+        <span>⬅</span>
+        <span>กลับไปหน้าเลือกของขวัญ</span>
+      </button>
+    </div>
+
+    <div class="gift3-stage">
+      <!-- Subtle Floating Mini Photos on the Outer Corners -->
+      <div class="mini-deco-photo p1"><img src="pic/web_IMG_2409.jpg" decoding="async" alt="Deco 1" /></div>
+      <div class="mini-deco-photo p2"><img src="pic/web_IMG_2407.jpg" decoding="async" alt="Deco 2" /></div>
+      <div class="mini-deco-photo p3"><img src="pic/web_S__4366352.jpg" decoding="async" alt="Deco 3" /></div>
+      <div class="mini-deco-photo p4"><img src="pic/web_IMG_2363.jpg" decoding="async" alt="Deco 4" /></div>
+
+      <!-- Giant Blooming Bouquet Showcase -->
+      <div id="bouquet-showcase" class="bouquet-showcase">
+        <div class="giant-bouquet-svg-wrap">
+          <!-- Custom Giant Luxury Pink Rose & Peony Bouquet SVG -->
+          <svg viewBox="0 0 400 420" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="wrapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffc4dd" />
+                <stop offset="50%" stop-color="#ff8fb8" />
+                <stop offset="100%" stop-color="#e3568c" />
+              </linearGradient>
+              <linearGradient id="innerWrap" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#fff5f9" />
+                <stop offset="100%" stop-color="#ffd9e8" />
+              </linearGradient>
+              <radialGradient id="roseDeep" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ff2e79" />
+                <stop offset="65%" stop-color="#ff6fa5" />
+                <stop offset="100%" stop-color="#ffb3d1" />
+              </radialGradient>
+              <radialGradient id="roseSoft" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ff639b" />
+                <stop offset="60%" stop-color="#ff9ec4" />
+                <stop offset="100%" stop-color="#ffe3ee" />
+              </radialGradient>
+            </defs>
+            <!-- Outer Pastel Ribbon Wrap Cone -->
+            <path d="M55,155 Q200,85 345,155 L260,365 Q200,390 140,365 Z" fill="url(#innerWrap)" stroke="#ff8ab5" stroke-width="4" />
+            <path d="M40,175 Q120,140 200,225 Q280,140 360,175 L258,365 Q200,395 142,365 Z" fill="url(#wrapGrad)" opacity="0.92" />
+            <!-- Leaves -->
+            <g fill="#5ec488">
+              <ellipse cx="95" cy="145" rx="35" ry="16" transform="rotate(-30 95 145)" />
+              <ellipse cx="305" cy="145" rx="35" ry="16" transform="rotate(30 305 145)" />
+              <ellipse cx="145" cy="95" rx="30" ry="14" transform="rotate(-15 145 95)" />
+              <ellipse cx="255" cy="95" rx="30" ry="14" transform="rotate(15 255 95)" />
+              <ellipse cx="200" cy="75" rx="26" ry="14" />
+            </g>
+            <!-- Giant Flowers Cluster -->
+            <g>
+              <!-- Back Row Flowers -->
+              <circle cx="135" cy="120" r="44" fill="url(#roseSoft)" stroke="#fff" stroke-width="2" />
+              <circle cx="265" cy="120" r="44" fill="url(#roseSoft)" stroke="#fff" stroke-width="2" />
+              <circle cx="200" cy="100" r="50" fill="url(#roseDeep)" stroke="#fff" stroke-width="2.5" />
+              <!-- Middle Row Flowers -->
+              <circle cx="95" cy="175" r="42" fill="url(#roseDeep)" stroke="#fff" stroke-width="2" />
+              <circle cx="305" cy="175" r="42" fill="url(#roseDeep)" stroke="#fff" stroke-width="2" />
+              <circle cx="155" cy="170" r="48" fill="url(#roseSoft)" stroke="#fff" stroke-width="2.5" />
+              <circle cx="245" cy="170" r="48" fill="url(#roseSoft)" stroke="#fff" stroke-width="2.5" />
+              <!-- Center Hero Giant Rose -->
+              <circle cx="200" cy="158" r="56" fill="url(#roseDeep)" stroke="#fff" stroke-width="3" />
+              <path d="M180,155 Q200,130 220,155 Q200,180 180,155 Z" fill="#fff0f6" opacity="0.65" />
+              <!-- Baby's breath white sparkles -->
+              <circle cx="115" cy="115" r="6" fill="#fff" />
+              <circle cx="285" cy="115" r="6" fill="#fff" />
+              <circle cx="165" cy="85" r="5" fill="#fff" />
+              <circle cx="235" cy="85" r="5" fill="#fff" />
+              <circle cx="130" cy="210" r="6" fill="#fff" />
+              <circle cx="270" cy="210" r="6" fill="#fff" />
+              <circle cx="200" cy="218" r="7" fill="#fff" />
+            </g>
+            <!-- Luxury Ribbon Bow at Waist -->
+            <path d="M145,295 Q110,260 135,330 Q170,320 200,305 Q230,320 265,330 Q290,260 255,295 Z" fill="#ff2e79" stroke="#fff" stroke-width="2.5" />
+            <path d="M190,305 L165,395 L188,388 L200,325 L212,388 L235,395 L210,305 Z" fill="#ff2e79" />
+            <circle cx="200" cy="304" r="16" fill="#ff7eb3" stroke="#fff" stroke-width="3" />
+          </svg>
+        </div>
+
+        <div class="bouquet-banner-text">
+          <h2>💐 ช่อดอกไม้ช่อใหญ่พิเศษสำหรับน้องมิเชล! 💖</h2>
+          <p>และมีคลิปวิดีโอเซอร์ไพรส์รวมความทรงจำพร้อมเพลงวันเกิดซ่อนอยู่ในช่อดอกไม้นี้ด้วยนะ!</p>
+          <div style="margin-top: 10px;">
+            <button id="show-video-popup-btn" class="cute-action-btn" type="button">
+              🎬 เปิดดูคลิปวิดีโอเซอร์ไพรส์ด้านหน้า
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pop-up Video Player Modal that bounces out in front of the Giant Bouquet -->
+      <div id="video-popup-card" class="video-popup-card">
+        <div class="video-card-header">
+          <span class="video-card-title">🎬 คลิปเซอร์ไพรส์วันเกิดน้อง Michelle 💖</span>
+          <button id="hide-video-popup-btn" class="minimize-video-btn" type="button">
+            💐 ดูช่อดอกไม้ชัดๆ
+          </button>
+        </div>
+
+        <div class="video-frame-container">
+          <video
+            id="surprise-video"
+            src="pic/birthday_surprise.mp4"
+            controls
+            playsinline
+            preload="metadata"
+          ></video>
+        </div>
+
+        <div class="video-caption-footer">
+          ✨ สุขสันต์วันเกิดนะหลานรหัสคนเก่ง (22.10) มีความสุขมากๆ นะ! ✨
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="photo_3d_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
